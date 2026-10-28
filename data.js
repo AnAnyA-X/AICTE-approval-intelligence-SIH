@@ -1,0 +1,892 @@
+/**
+ * AICTE APPROVAL INTELLIGENCE (SIH26262)
+ * Synthetic Data Store & Preconfigured Regulations
+ * Note: Synthetic records for prototype demonstration. Not connected to live AICTE systems.
+ */
+
+const DB = {
+  currentUser: {
+    role: 'institution', // 'institution' | 'reviewer' | 'admin'
+    name: 'Dr. Suresh Patil',
+    title: 'Institution Coordinator',
+    institution: 'Shreya Institute of Technology, Pune',
+    institutionCode: '1-42981042',
+    email: 'coordinator@shreyatech.edu.in',
+    region: 'Western'
+  },
+
+  rolesConfig: {
+    institution: {
+      name: 'Dr. Suresh Patil',
+      role: 'institution',
+      title: 'Institution Coordinator',
+      badge: 'Institution · Western Region',
+      avatar: 'IC',
+      allowedStages: ['draft', 'submitted'],
+      canUpload: true,
+      canVerify: false,
+      canMoveStage: false,
+      canRaiseDeficiency: false,
+      nav: [
+        { id: 'dashboard', label: 'Dashboard', icon: 'fa-gauge-high' },
+        { id: 'applications', label: 'My Applications', icon: 'fa-folder-tree', badge: null },
+        { id: 'compliance', label: 'Compliance & Evidence', icon: 'fa-list-check', badge: null },
+        { id: 'blockers', label: 'Blockers & Dependencies', icon: 'fa-diagram-project', badge: '2' },
+        { id: 'alerts', label: 'Alerts & Tasks', icon: 'fa-bell', badge: '3' },
+        { id: 'audit', label: 'Audit Trail', icon: 'fa-clock-rotate-left' }
+      ]
+    },
+    reviewer: {
+      name: 'Prof. Rajiv Sharma',
+      role: 'reviewer',
+      title: 'Scrutiny Officer',
+      badge: 'Scrutiny Committee · Western Region',
+      avatar: 'RS',
+      allowedStages: ['scrutiny', 'deficiency', 'expert_visit'],
+      canUpload: false,
+      canVerify: true,
+      canMoveStage: true,
+      canRaiseDeficiency: true,
+      nav: [
+        { id: 'dashboard', label: 'Reviewer Dashboard', icon: 'fa-gauge-high' },
+        { id: 'applications', label: 'Applications Queue', icon: 'fa-inbox', badge: '3' },
+        { id: 'compliance', label: 'Evidence Verification', icon: 'fa-check-double', badge: null },
+        { id: 'blockers', label: 'Blocker Diagnosis', icon: 'fa-diagram-project', badge: '4' },
+        { id: 'alerts', label: 'SLA Follow-ups', icon: 'fa-bell', badge: '4' },
+        { id: 'audit', label: 'Scrutiny Log', icon: 'fa-clock-rotate-left' }
+      ]
+    },
+    admin: {
+      name: 'Dr. Meenakshi Sundaram',
+      role: 'admin',
+      title: 'Chief Regional Officer',
+      badge: 'AICTE HQ · National Overview',
+      avatar: 'MS',
+      allowedStages: ['submitted', 'scrutiny', 'deficiency', 'expert_visit', 'final_review', 'approved', 'rejected'],
+      canUpload: true,
+      canVerify: true,
+      canMoveStage: true,
+      canRaiseDeficiency: true,
+      nav: [
+        { id: 'dashboard', label: 'HQ Executive Dashboard', icon: 'fa-chart-pie' },
+        { id: 'applications', label: 'All Applications', icon: 'fa-layer-group', badge: null },
+        { id: 'compliance', label: 'National Compliance Register', icon: 'fa-shield-halved', badge: null },
+        { id: 'blockers', label: 'Systemic Bottlenecks', icon: 'fa-diagram-project', badge: '5' },
+        { id: 'alerts', label: 'Escalations & Alerts', icon: 'fa-bell', badge: '7' },
+        { id: 'audit', label: 'Central Audit Registry', icon: 'fa-fingerprint' }
+      ]
+    }
+  },
+
+  stages: [
+    { id: 'submitted', label: 'Application Submitted', sla: 3, icon: 'fa-file-import' },
+    { id: 'scrutiny', label: 'Scrutiny of Documents', sla: 10, icon: 'fa-magnifying-glass' },
+    { id: 'deficiency', label: 'Deficiency & Resubmission', sla: 15, icon: 'fa-triangle-exclamation' },
+    { id: 'expert_visit', label: 'Expert Visit Committee (EVC)', sla: 15, icon: 'fa-building-circle-check' },
+    { id: 'final_review', label: 'Regional Committee Review', sla: 7, icon: 'fa-scale-balanced' },
+    { id: 'approved', label: 'Approval Letter Issued', sla: 0, icon: 'fa-circle-check' },
+    { id: 'rejected', label: 'Application Rejected', sla: 0, icon: 'fa-circle-xmark' }
+  ],
+
+  // Representative regulatory rules from AICTE Approval Process Handbook (APH)
+  rulesCatalog: [
+    { id: 'RULE-LAND', code: 'APH-2.1', category: 'Land & Infrastructure', name: 'Land Title & Possession', requirement: 'Clear possession of minimum 2.5 acres non-encumbered contiguous land registered in Trust/Society name.', mandatoryFor: ['New Technical Institution'] },
+    { id: 'RULE-BLDG', code: 'APH-2.4', category: 'Land & Infrastructure', name: 'Approved Building Plan & Occupancy Certificate', requirement: 'Sanctioned master plan by competent civic authority and structural stability certificate.', mandatoryFor: ['New Technical Institution', 'Increase in Intake'] },
+    { id: 'RULE-FIRE', code: 'APH-2.8', category: 'Safety & Environmental', name: 'Fire & Life Safety NOC', requirement: 'Valid Fire Safety NOC issued by State Fire Department with annual renewal date.', mandatoryFor: ['All'] },
+    { id: 'RULE-STATE-NOC', code: 'APH-1.3', category: 'Statutory', name: 'State Government NOC / Recommendation', requirement: 'State Higher/Technical Education Department No-Objection Certificate.', mandatoryFor: ['New Technical Institution', 'Introduction of New Course'] },
+    { id: 'RULE-AFFIL-NOC', code: 'APH-1.4', category: 'Statutory', name: 'Affiliating University NOC', requirement: 'Provisional affiliation concurrence letter from affiliating State Technical University.', mandatoryFor: ['New Technical Institution', 'Increase in Intake'] },
+    { id: 'RULE-FDR', code: 'APH-3.1', category: 'Financial Security', name: 'Joint Bank FDR (Fixed Deposit)', requirement: 'Unencumbered FDR of INR 50 Lakhs (Engg/Tech) in joint name of Society and AICTE for 10 years.', mandatoryFor: ['New Technical Institution'] },
+    { id: 'RULE-FACULTY', code: 'APH-4.2', category: 'Faculty & Cadre', name: 'Cadre Ratio & Qualified Faculty Roster', requirement: 'Faculty-to-student ratio of 1:15 or 1:20 as applicable with 1:2:6 cadre ratio (Prof:Assoc:Asst).', mandatoryFor: ['All'] },
+    { id: 'RULE-LABS', code: 'APH-5.1', category: 'Academic & Laboratory', name: 'Laboratory Equipment & Software Licenses', requirement: 'Prescribed equipment checklist verified with valid legal invoices and software licenses.', mandatoryFor: ['New Technical Institution', 'Increase in Intake'] },
+    { id: 'RULE-ANTIRAG', code: 'APH-6.1', category: 'Student Welfare', name: 'Anti-Ragging Committee & Toll-Free Display', requirement: 'Statutory Anti-Ragging undertaking on stamp paper, roster of squad and monitoring setup.', mandatoryFor: ['All'] }
+  ],
+
+  applications: [
+    {
+      id: 'APP-2026-081',
+      refNumber: 'AICTE/WR/2026/1-42981042',
+      institutionName: 'Shreya Institute of Technology, Pune',
+      institutionCode: '1-42981042',
+      applicationType: 'New Technical Institution',
+      program: 'Undergraduate Engineering & Technology',
+      course: 'B.Tech - Artificial Intelligence & Data Science',
+      intake: 120,
+      academicYear: '2026-27',
+      region: 'Western',
+      state: 'Maharashtra',
+      currentStage: 'deficiency',
+      status: 'Deficiency Communicated - Resubmission Pending',
+      priority: 'high',
+      submittedDate: '2026-09-12',
+      lastActionDate: '2026-10-24',
+      stageEnteredDate: '2026-10-20',
+      assignedOfficer: 'Prof. Rajiv Sharma (Scrutiny Officer)',
+      coordinator: 'Dr. Suresh Patil',
+      summary: 'Application for establishment of new technical campus offering AI & DS branch with 120 intake.',
+      stageAgeing: {
+        submitted: { days: 2, sla: 3, status: 'ok' },
+        scrutiny: { days: 12, sla: 10, status: 'breached' },
+        deficiency: { days: 8, sla: 15, status: 'warning' },
+        expert_visit: { days: 0, sla: 15, status: 'pending' },
+        final_review: { days: 0, sla: 7, status: 'pending' },
+        totalDays: 22,
+        totalSla: 50
+      },
+      blockers: [
+        {
+          id: 'BLK-081-1',
+          code: 'BLOCK-NOC-STATE',
+          title: 'State Government NOC Missing',
+          severity: 'critical',
+          sourceType: 'Requirement',
+          sourceRef: 'RULE-STATE-NOC',
+          stageBlocked: 'expert_visit',
+          stageBlockedLabel: 'Expert Visit Committee (EVC)',
+          prerequisite: 'Valid NOC from Directorate of Technical Education (DTE), Maharashtra',
+          responsibleRole: 'Institution Coordinator',
+          responsibleParty: 'Dr. Suresh Patil (Institution)',
+          dueDate: '2026-11-04',
+          rootCause: 'The submitted document was only an acknowledgment of application submitted to DTE, not the statutory NOC signed by Principal Secretary.',
+          impactDescription: 'EVC inspection panel cannot be appointed until statutory State concurrence is verified in compliance register.',
+          nextRecommendedAction: 'Upload the formal Government Resolution / DTE NOC certificate or verified extension memo before 04-Nov-2026.',
+          status: 'open'
+        },
+        {
+          id: 'BLK-081-2',
+          code: 'BLOCK-FDR-JOINT',
+          title: 'FDR Amount Mismatch & Missing Joint AICTE Lien',
+          severity: 'high',
+          sourceType: 'Evidence',
+          sourceRef: 'RULE-FDR',
+          stageBlocked: 'final_review',
+          stageBlockedLabel: 'Regional Committee Review',
+          prerequisite: 'INR 50 Lakh FDR with joint lien marked to Member Secretary AICTE',
+          responsibleRole: 'Institution Coordinator & Bank Branch Manager',
+          responsibleParty: 'Shreya Education Society & SBI Pune Branch',
+          dueDate: '2026-11-06',
+          rootCause: 'Fixed deposit receipt is for INR 35 Lakhs instead of mandatory INR 50 Lakhs for Western Metro Zone, and joint encumbrance letter is unsigned.',
+          impactDescription: 'Financial viability criterion fails; Regional Committee cannot recommend Letter of Approval (LoA).',
+          nextRecommendedAction: 'Deposit supplemental INR 15 Lakh FDR and obtain Form-B lien confirmation letter from the authorized scheduled bank.',
+          status: 'open'
+        }
+      ],
+      complianceItems: [
+        {
+          id: 'CMP-081-01',
+          ruleId: 'RULE-LAND',
+          ruleCode: 'APH-2.1',
+          requirementName: 'Land Title & Possession Deed',
+          category: 'Land & Infrastructure',
+          mandatory: true,
+          evidenceFile: 'Registered_SaleDeed_2.8Acres_Kothrud.pdf',
+          fileSize: '4.8 MB',
+          uploadDate: '2026-09-12',
+          expiryDate: 'Perpetual',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-09-28',
+          status: 'verified',
+          remarks: 'Title search report up to 30 years verified without encumbrance. Minimum land requirement 2.5 acres satisfied.'
+        },
+        {
+          id: 'CMP-081-02',
+          ruleId: 'RULE-BLDG',
+          ruleCode: 'APH-2.4',
+          requirementName: 'Approved Building Plan & Built-up Area',
+          category: 'Land & Infrastructure',
+          mandatory: true,
+          evidenceFile: 'PMC_Approved_MasterPlan_Sanction.pdf',
+          fileSize: '12.4 MB',
+          uploadDate: '2026-09-12',
+          expiryDate: '2029-08-30',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-09-29',
+          status: 'verified',
+          remarks: 'Instructional area 4,200 sq.m against norm 3,850 sq.m. Occupancy certificate issued by Pune Municipal Corp.'
+        },
+        {
+          id: 'CMP-081-03',
+          ruleId: 'RULE-FIRE',
+          ruleCode: 'APH-2.8',
+          requirementName: 'Fire & Life Safety NOC',
+          category: 'Safety & Environmental',
+          mandatory: true,
+          evidenceFile: 'Fire_NOC_PMC_Safety_2026.pdf',
+          fileSize: '2.1 MB',
+          uploadDate: '2026-09-12',
+          expiryDate: '2027-04-15',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-09-30',
+          status: 'verified',
+          remarks: 'Valid Fire NOC in place with fire hydrant and smoke detection installation certified.'
+        },
+        {
+          id: 'CMP-081-04',
+          ruleId: 'RULE-STATE-NOC',
+          ruleCode: 'APH-1.3',
+          requirementName: 'State Government NOC',
+          category: 'Statutory',
+          mandatory: true,
+          evidenceFile: 'DTE_Application_Receipt_Only.pdf',
+          fileSize: '840 KB',
+          uploadDate: '2026-09-12',
+          expiryDate: 'N/A',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-10-18',
+          status: 'rejected',
+          remarks: 'DEFICIENCY: Uploaded document is merely an application receipt stamped by DTE clerk. Final statutory clearance G.R. missing.'
+        },
+        {
+          id: 'CMP-081-05',
+          ruleId: 'RULE-AFFIL-NOC',
+          ruleCode: 'APH-1.4',
+          requirementName: 'Affiliating University NOC',
+          category: 'Statutory',
+          mandatory: true,
+          evidenceFile: 'SPPU_Provisional_Affiliation_NOC.pdf',
+          fileSize: '1.6 MB',
+          uploadDate: '2026-09-12',
+          expiryDate: '2027-05-31',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-10-02',
+          status: 'verified',
+          remarks: 'Savitribai Phule Pune University Senate resolution attached granting in-principle academic concurrence.'
+        },
+        {
+          id: 'CMP-081-06',
+          ruleId: 'RULE-FDR',
+          ruleCode: 'APH-3.1',
+          requirementName: 'Joint Bank FDR (INR 50 Lakhs)',
+          category: 'Financial Security',
+          mandatory: true,
+          evidenceFile: 'SBI_FDR_Receipt_35Lakhs.pdf',
+          fileSize: '1.2 MB',
+          uploadDate: '2026-09-12',
+          expiryDate: '2036-08-10',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-10-19',
+          status: 'rejected',
+          remarks: 'DEFICIENCY: Value is INR 35 Lakhs (shortfall of 15 Lakhs). Tripartite lien declaration with Member Secretary AICTE not attached.'
+        },
+        {
+          id: 'CMP-081-07',
+          ruleId: 'RULE-FACULTY',
+          ruleCode: 'APH-4.2',
+          requirementName: 'Faculty Cadre & Appointment Letters',
+          category: 'Faculty & Cadre',
+          mandatory: true,
+          evidenceFile: 'Faculty_Roster_Identified_8Members.pdf',
+          fileSize: '3.9 MB',
+          uploadDate: '2026-10-22',
+          expiryDate: '2027-06-30',
+          verifiedBy: null,
+          verifiedAt: null,
+          status: 'pending_verification',
+          remarks: 'Resubmitted with 8 faculty profiles including 1 Professor, 2 Associate Professors and 5 Assistant Professors. Pending scrutiny verification.'
+        },
+        {
+          id: 'CMP-081-08',
+          ruleId: 'RULE-LABS',
+          ruleCode: 'APH-5.1',
+          requirementName: 'AI & Data Science Laboratory Setup',
+          category: 'Academic & Laboratory',
+          mandatory: true,
+          evidenceFile: null,
+          fileSize: null,
+          uploadDate: null,
+          expiryDate: null,
+          verifiedBy: null,
+          verifiedAt: null,
+          status: 'missing',
+          remarks: 'Hardware and GPU compute workstation inventory invoices and licenses not uploaded.'
+        },
+        {
+          id: 'CMP-081-09',
+          ruleId: 'RULE-ANTIRAG',
+          ruleCode: 'APH-6.1',
+          requirementName: 'Anti-Ragging Undertakings & Committee',
+          category: 'Student Welfare',
+          mandatory: true,
+          evidenceFile: 'Anti_Ragging_Affidavit_Notarized.pdf',
+          fileSize: '950 KB',
+          uploadDate: '2026-09-12',
+          expiryDate: '2027-06-30',
+          verifiedBy: 'Prof. Rajiv Sharma',
+          verifiedAt: '2026-09-25',
+          status: 'verified',
+          remarks: 'Executive committee notified with local police inspector and student representatives included.'
+        }
+      ],
+      deficiencies: [
+        {
+          id: 'DEF-081-01',
+          itemCode: 'CMP-081-04',
+          title: 'State Government NOC Not Provided',
+          raisedBy: 'Prof. Rajiv Sharma',
+          raisedDate: '2026-10-20',
+          dueDate: '2026-11-04',
+          status: 'open',
+          severity: 'critical',
+          description: 'Under Chapter I Clause 1.3 of AICTE APH, establishment of a new institution requires express concurrence of the respective State Government.',
+          remedyRequired: 'Upload the formal Gazette Notification or DTE Maharashtra NOC letter.'
+        },
+        {
+          id: 'DEF-081-02',
+          itemCode: 'CMP-081-06',
+          title: 'Shortfall in Joint Fixed Deposit Amount',
+          raisedBy: 'Prof. Rajiv Sharma',
+          raisedDate: '2026-10-20',
+          dueDate: '2026-11-06',
+          status: 'open',
+          severity: 'high',
+          description: 'Submitted FDR is for INR 35 Lakhs. Normative requirement is INR 50 Lakhs for Undergraduate Technical Engineering programs in Western Region.',
+          remedyRequired: 'Provide supplemental FDR of INR 15 Lakhs and bank lien confirmation letter.'
+        }
+      ],
+      auditTrail: [
+        {
+          id: 'AUD-081-01',
+          timestamp: '2026-09-12 11:34:10',
+          actor: 'Dr. Suresh Patil',
+          role: 'Institution Coordinator',
+          action: 'APPLICATION_SUBMITTED',
+          summary: 'Online application submitted with 8 documents and payment of processing fee.',
+          details: 'Application submitted for B.Tech AI&DS (120 intake). Pre-submission rule checks passed 6/8 items.'
+        },
+        {
+          id: 'AUD-081-02',
+          timestamp: '2026-09-14 09:15:00',
+          actor: 'System Automated Workflow',
+          role: 'Workflow Engine',
+          action: 'STAGE_TRANSITION',
+          summary: 'Moved from Submitted to Scrutiny of Documents stage.',
+          details: 'Application routed to Western Regional Office. Assigned to Scrutiny Officer Prof. Rajiv Sharma.'
+        },
+        {
+          id: 'AUD-081-03',
+          timestamp: '2026-10-18 16:45:22',
+          actor: 'Prof. Rajiv Sharma',
+          role: 'Scrutiny Officer',
+          action: 'EVIDENCE_REJECTED',
+          summary: 'State Government NOC rejected due to incomplete submission.',
+          details: 'Item CMP-081-04 marked Rejected. Reason: Uploaded file is only an application receipt, not formal statutory approval.'
+        },
+        {
+          id: 'AUD-081-04',
+          timestamp: '2026-10-20 14:10:00',
+          actor: 'Prof. Rajiv Sharma',
+          role: 'Scrutiny Officer',
+          action: 'DEFICIENCY_ISSUED',
+          summary: 'Application transitioned to Deficiency & Resubmission stage with 2 flagged items.',
+          details: 'Formal deficiency notice generated under SIH workflow rules. Institution granted 15 days window till 04-Nov-2026.'
+        },
+        {
+          id: 'AUD-081-05',
+          timestamp: '2026-10-22 10:20:18',
+          actor: 'Dr. Suresh Patil',
+          role: 'Institution Coordinator',
+          action: 'EVIDENCE_UPLOADED',
+          summary: 'Resubmitted updated Faculty Roster (REQ-FACULTY).',
+          details: 'Uploaded Faculty_Roster_Identified_8Members.pdf with 8 certified appointment letters.'
+        }
+      ]
+    },
+
+    {
+      id: 'APP-2026-042',
+      refNumber: 'AICTE/SR/2026/1-10928411',
+      institutionName: 'Kaveri College of Engineering, Mysuru',
+      institutionCode: '1-10928411',
+      applicationType: 'Increase in Intake',
+      program: 'Undergraduate Engineering',
+      course: 'B.Tech - Computer Science & Engineering',
+      intake: 60,
+      academicYear: '2026-27',
+      region: 'Southern',
+      state: 'Karnataka',
+      currentStage: 'approved',
+      status: 'Approval Letter (LoA) Issued',
+      priority: 'medium',
+      submittedDate: '2026-08-10',
+      lastActionDate: '2026-10-15',
+      stageEnteredDate: '2026-10-15',
+      assignedOfficer: 'Dr. P. R. Menon (Regional Officer)',
+      coordinator: 'Prof. K. Venkatesh',
+      summary: 'Expansion of CSE intake from 120 to 180 seats based on NBA accreditation of existing batch.',
+      stageAgeing: {
+        submitted: { days: 2, sla: 3, status: 'ok' },
+        scrutiny: { days: 8, sla: 10, status: 'ok' },
+        deficiency: { days: 0, sla: 15, status: 'ok' },
+        expert_visit: { days: 11, sla: 15, status: 'ok' },
+        final_review: { days: 5, sla: 7, status: 'ok' },
+        totalDays: 26,
+        totalSla: 50
+      },
+      blockers: [],
+      complianceItems: [
+        {
+          id: 'CMP-042-01',
+          ruleId: 'RULE-BLDG',
+          ruleCode: 'APH-2.4',
+          requirementName: 'Additional Built-up Classroom Space',
+          category: 'Land & Infrastructure',
+          mandatory: true,
+          evidenceFile: 'Expansion_Wing_Plan_Approved.pdf',
+          fileSize: '5.2 MB',
+          uploadDate: '2026-08-10',
+          expiryDate: '2030-12-31',
+          verifiedBy: 'Dr. P. R. Menon',
+          verifiedAt: '2026-08-18',
+          status: 'verified',
+          remarks: '6 additional smart classrooms verified with total carpet area of 480 sq.m.'
+        },
+        {
+          id: 'CMP-042-02',
+          ruleId: 'RULE-FACULTY',
+          ruleCode: 'APH-4.2',
+          requirementName: 'Faculty Cadre for Additional 60 Intake',
+          category: 'Faculty & Cadre',
+          mandatory: true,
+          evidenceFile: 'Additional_Faculty_Recruitment_List.pdf',
+          fileSize: '2.8 MB',
+          uploadDate: '2026-08-10',
+          expiryDate: '2027-08-31',
+          verifiedBy: 'Dr. P. R. Menon',
+          verifiedAt: '2026-08-19',
+          status: 'verified',
+          remarks: '4 additional full-time faculty appointed with UGC-scale payslips verified.'
+        },
+        {
+          id: 'CMP-042-03',
+          ruleId: 'RULE-AFFIL-NOC',
+          ruleCode: 'APH-1.4',
+          requirementName: 'VTU Affiliation Concurrence',
+          category: 'Statutory',
+          mandatory: true,
+          evidenceFile: 'VTU_Belagavi_Affiliation_Extension.pdf',
+          fileSize: '1.4 MB',
+          uploadDate: '2026-08-10',
+          expiryDate: '2027-06-30',
+          verifiedBy: 'Dr. P. R. Menon',
+          verifiedAt: '2026-08-18',
+          status: 'verified',
+          remarks: 'VTU Executive Council resolution approved for seat enhancement.'
+        }
+      ],
+      deficiencies: [],
+      auditTrail: [
+        {
+          id: 'AUD-042-01',
+          timestamp: '2026-08-10 10:00:00',
+          actor: 'Prof. K. Venkatesh',
+          role: 'Institution Coordinator',
+          action: 'APPLICATION_SUBMITTED',
+          summary: 'Application submitted for intake expansion (+60 seats).',
+          details: 'Application submitted with all requisite infrastructural drawings and NBA tier-1 accreditation.'
+        },
+        {
+          id: 'AUD-042-02',
+          timestamp: '2026-08-20 15:30:00',
+          actor: 'Dr. P. R. Menon',
+          role: 'Scrutiny Officer',
+          action: 'SCRUTINY_CLEARED',
+          summary: 'Scrutiny completed with zero deficiencies.',
+          details: 'All mandatory evidence verified. Transitioned to Expert Visit Committee stage.'
+        },
+        {
+          id: 'AUD-042-03',
+          timestamp: '2026-09-12 17:00:00',
+          actor: 'Expert Committee Panel',
+          role: 'EVC Team',
+          action: 'EVC_RECOMMENDED',
+          summary: 'Campus physical inspection conducted. Facilities found compliant.',
+          details: 'Report uploaded by EVC Chairman Prof. Anand. Lab equipment and computing facilities verified.'
+        },
+        {
+          id: 'AUD-042-04',
+          timestamp: '2026-10-15 11:20:00',
+          actor: 'Dr. Meenakshi Sundaram',
+          role: 'Chief Regional Officer',
+          action: 'APPROVAL_GRANTED',
+          summary: 'Letter of Approval (LoA) digitally signed and issued.',
+          details: 'Final approval issued under APH Chapter II Regulations. Intake updated to 180 for 2026-27.'
+        }
+      ]
+    },
+
+    {
+      id: 'APP-2026-118',
+      refNumber: 'AICTE/SC/2026/1-77189021',
+      institutionName: 'Vignana Jyothi Institute of Technology, Hyderabad',
+      institutionCode: '1-77189021',
+      applicationType: 'New Technical Institution',
+      program: 'Undergraduate Engineering',
+      course: 'B.Tech - Mechanical & Mechatronics',
+      intake: 60,
+      academicYear: '2026-27',
+      region: 'South-Central',
+      state: 'Telangana',
+      currentStage: 'scrutiny',
+      status: 'Under Scrutiny - Document Verification in Progress',
+      priority: 'high',
+      submittedDate: '2026-09-25',
+      lastActionDate: '2026-10-26',
+      stageEnteredDate: '2026-09-28',
+      assignedOfficer: 'Dr. S. K. Reddy (Scrutiny Officer)',
+      coordinator: 'Dr. Ramesh Chandra',
+      summary: 'New institution campus proposal in Ranga Reddy district.',
+      stageAgeing: {
+        submitted: { days: 3, sla: 3, status: 'ok' },
+        scrutiny: { days: 28, sla: 10, status: 'breached' },
+        deficiency: { days: 0, sla: 15, status: 'pending' },
+        expert_visit: { days: 0, sla: 15, status: 'pending' },
+        final_review: { days: 0, sla: 7, status: 'pending' },
+        totalDays: 31,
+        totalSla: 50
+      },
+      blockers: [
+        {
+          id: 'BLK-118-1',
+          code: 'BLOCK-FIRE-EXP',
+          title: 'Fire Safety Certificate Expired',
+          severity: 'critical',
+          sourceType: 'Evidence',
+          sourceRef: 'RULE-FIRE',
+          stageBlocked: 'expert_visit',
+          stageBlockedLabel: 'Expert Visit Committee (EVC)',
+          prerequisite: 'Valid Fire NOC in force on date of physical inspection',
+          responsibleRole: 'Institution Coordinator',
+          responsibleParty: 'Dr. Ramesh Chandra (Institution)',
+          dueDate: '2026-10-31',
+          rootCause: 'Submitted Telangana State Disaster Response & Fire Services NOC expired on 30-Sep-2026.',
+          impactDescription: 'Regulatory compliance failure. AICTE norms strictly prohibit physical inspection with lapsed fire NOC.',
+          nextRecommendedAction: 'Upload the renewed Fire Safety Compliance Certificate issued by District Fire Officer immediately.',
+          status: 'open'
+        },
+        {
+          id: 'BLK-118-2',
+          code: 'BLOCK-SCRUTINY-OVERDUE',
+          title: 'Scrutiny Stage Ageing Breached 10-Day SLA (Now 28 Days)',
+          severity: 'high',
+          sourceType: 'Workflow',
+          sourceRef: 'APH-SLA-02',
+          stageBlocked: 'deficiency',
+          stageBlockedLabel: 'Deficiency Issuance',
+          prerequisite: 'Scrutiny Officer must formally submit verification checklist',
+          responsibleRole: 'Scrutiny Officer',
+          responsibleParty: 'Dr. S. K. Reddy (AICTE South-Central)',
+          dueDate: '2026-10-08',
+          rootCause: 'Heavy regional application workload and delay in receiving land records verification from local tehsildar.',
+          impactDescription: 'Institutional review calendar delayed; potential spillover past national cut-off date.',
+          nextRecommendedAction: 'Escalate to Regional Director to expedite checklist completion or reassign scrutiny co-evaluator.',
+          status: 'open'
+        }
+      ],
+      complianceItems: [
+        {
+          id: 'CMP-118-01',
+          ruleId: 'RULE-LAND',
+          ruleCode: 'APH-2.1',
+          requirementName: 'Land Title & Possession',
+          category: 'Land & Infrastructure',
+          mandatory: true,
+          evidenceFile: 'Hyderabad_Land_Registry_3Acres.pdf',
+          fileSize: '6.1 MB',
+          uploadDate: '2026-09-25',
+          expiryDate: 'Perpetual',
+          verifiedBy: null,
+          verifiedAt: null,
+          status: 'pending_verify',
+          remarks: 'Under verification by scrutiny sub-committee with revenue records.'
+        },
+        {
+          id: 'CMP-118-02',
+          ruleId: 'RULE-FIRE',
+          ruleCode: 'APH-2.8',
+          requirementName: 'Fire Safety NOC',
+          category: 'Safety & Environmental',
+          mandatory: true,
+          evidenceFile: 'TS_Fire_Dept_NOC_2025_Expired.pdf',
+          fileSize: '1.8 MB',
+          uploadDate: '2026-09-25',
+          expiryDate: '2026-09-30',
+          verifiedBy: 'Dr. S. K. Reddy',
+          verifiedAt: '2026-10-05',
+          status: 'expired',
+          remarks: 'CRITICAL WARNING: Fire NOC expired on 30-Sep-2026. Renewal certificate required before committee movement.'
+        },
+        {
+          id: 'CMP-118-03',
+          ruleId: 'RULE-FDR',
+          ruleCode: 'APH-3.1',
+          requirementName: 'Joint Bank FDR (INR 50 Lakhs)',
+          category: 'Financial Security',
+          mandatory: true,
+          evidenceFile: 'Canara_Bank_FDR_50Lakhs_Lien.pdf',
+          fileSize: '1.1 MB',
+          uploadDate: '2026-09-25',
+          expiryDate: '2036-09-15',
+          verifiedBy: 'Dr. S. K. Reddy',
+          verifiedAt: '2026-10-06',
+          status: 'verified',
+          remarks: 'INR 50 Lakhs FDR in joint name verified with bank confirmation letter.'
+        }
+      ],
+      deficiencies: [],
+      auditTrail: [
+        {
+          id: 'AUD-118-01',
+          timestamp: '2026-09-25 14:20:00',
+          actor: 'Dr. Ramesh Chandra',
+          role: 'Institution Coordinator',
+          action: 'APPLICATION_SUBMITTED',
+          summary: 'Application submitted for Vignana Jyothi Institute.',
+          details: 'New institution application submitted online.'
+        },
+        {
+          id: 'AUD-118-02',
+          timestamp: '2026-10-05 16:00:00',
+          actor: 'System Automated Workflow',
+          role: 'Alert Engine',
+          action: 'DOCUMENT_EXPIRY_DETECTED',
+          summary: 'System flagged Fire NOC document as Expired.',
+          details: 'CMP-118-02 expiry date 2026-09-30 elapsed. Automated notice dispatched to institution and reviewer.'
+        }
+      ]
+    },
+
+    {
+      id: 'APP-2026-194',
+      refNumber: 'AICTE/SW/2026/1-98014522',
+      institutionName: 'National Institute of Engineering Extension, Mangaluru',
+      institutionCode: '1-98014522',
+      applicationType: 'Introduction of New Course',
+      program: 'Postgraduate Engineering & Technology',
+      course: 'M.Tech - Robotics & Autonomous Systems',
+      intake: 30,
+      academicYear: '2026-27',
+      region: 'South-Western',
+      state: 'Karnataka',
+      currentStage: 'submitted',
+      status: 'Initial Submission Completed - Pending Queue Assignment',
+      priority: 'low',
+      submittedDate: '2026-10-26',
+      lastActionDate: '2026-10-26',
+      stageEnteredDate: '2026-10-26',
+      assignedOfficer: 'Unassigned',
+      coordinator: 'Dr. A. N. Bhat',
+      summary: 'Introduction of PG course in robotics under existing accredited institution campus.',
+      stageAgeing: {
+        submitted: { days: 2, sla: 3, status: 'ok' },
+        scrutiny: { days: 0, sla: 10, status: 'pending' },
+        deficiency: { days: 0, sla: 15, status: 'pending' },
+        expert_visit: { days: 0, sla: 15, status: 'pending' },
+        final_review: { days: 0, sla: 7, status: 'pending' },
+        totalDays: 2,
+        totalSla: 50
+      },
+      blockers: [],
+      complianceItems: [
+        {
+          id: 'CMP-194-01',
+          ruleId: 'RULE-AFFIL-NOC',
+          ruleCode: 'APH-1.4',
+          requirementName: 'University Academic Council Approval',
+          category: 'Statutory',
+          mandatory: true,
+          evidenceFile: 'VTU_Robotics_Curriculum_Approval.pdf',
+          fileSize: '2.4 MB',
+          uploadDate: '2026-10-26',
+          expiryDate: '2028-06-30',
+          verifiedBy: null,
+          verifiedAt: null,
+          status: 'pending_verify',
+          remarks: 'Submitted curriculum scheme with board of studies sanction.'
+        },
+        {
+          id: 'CMP-194-02',
+          ruleId: 'RULE-FACULTY',
+          ruleCode: 'APH-4.2',
+          requirementName: 'Postgraduate PhD Core Faculty (min 3)',
+          category: 'Faculty & Cadre',
+          mandatory: true,
+          evidenceFile: 'PG_Faculty_PhD_Certificates.pdf',
+          fileSize: '4.1 MB',
+          uploadDate: '2026-10-26',
+          expiryDate: '2027-06-30',
+          verifiedBy: null,
+          verifiedAt: null,
+          status: 'pending_verify',
+          remarks: 'Profiles of 1 Professor (PhD Robotics) and 2 Associate Professors uploaded.'
+        }
+      ],
+      deficiencies: [],
+      auditTrail: [
+        {
+          id: 'AUD-194-01',
+          timestamp: '2026-10-26 09:30:15',
+          actor: 'Dr. A. N. Bhat',
+          role: 'Institution Coordinator',
+          action: 'APPLICATION_SUBMITTED',
+          summary: 'Application submitted for M.Tech Robotics & Autonomous Systems.',
+          details: 'Application submitted within deadline window. Processing fee transaction verified.'
+        }
+      ]
+    },
+
+    {
+      id: 'APP-2026-015',
+      refNumber: 'AICTE/NW/2026/1-33190281',
+      institutionName: 'Rajasthan Technical Institute, Kota',
+      institutionCode: '1-33190281',
+      applicationType: 'Increase in Intake',
+      program: 'Undergraduate Engineering',
+      course: 'B.Tech - Civil Engineering',
+      intake: 60,
+      academicYear: '2026-27',
+      region: 'North-Western',
+      state: 'Rajasthan',
+      currentStage: 'rejected',
+      status: 'Application Rejected - Eligibility Norm Not Met',
+      priority: 'low',
+      submittedDate: '2026-07-15',
+      lastActionDate: '2026-09-18',
+      stageEnteredDate: '2026-09-18',
+      assignedOfficer: 'Dr. Anand Verma (Regional Officer)',
+      coordinator: 'Prof. M. L. Sharma',
+      summary: 'Expansion of Civil Engineering branch rejected due to persistent sub-60% enrollment in preceding 2 academic cycles.',
+      stageAgeing: {
+        submitted: { days: 2, sla: 3, status: 'ok' },
+        scrutiny: { days: 7, sla: 10, status: 'ok' },
+        deficiency: { days: 0, sla: 15, status: 'ok' },
+        expert_visit: { days: 12, sla: 15, status: 'ok' },
+        final_review: { days: 6, sla: 7, status: 'ok' },
+        totalDays: 27,
+        totalSla: 50
+      },
+      blockers: [],
+      complianceItems: [
+        {
+          id: 'CMP-015-01',
+          ruleId: 'RULE-LAND',
+          ruleCode: 'APH-2.1',
+          requirementName: 'Land & Infrastructure Sufficiency',
+          category: 'Land & Infrastructure',
+          mandatory: true,
+          evidenceFile: 'Kota_Campus_Land_Docs.pdf',
+          fileSize: '5.0 MB',
+          uploadDate: '2026-07-15',
+          expiryDate: 'Perpetual',
+          verifiedBy: 'Dr. Anand Verma',
+          verifiedAt: '2026-07-22',
+          status: 'verified',
+          remarks: 'Infrastructural norms satisfied.'
+        }
+      ],
+      deficiencies: [],
+      auditTrail: [
+        {
+          id: 'AUD-015-01',
+          timestamp: '2026-07-15 11:00:00',
+          actor: 'Prof. M. L. Sharma',
+          role: 'Institution Coordinator',
+          action: 'APPLICATION_SUBMITTED',
+          summary: 'Application submitted for Civil Engg intake increase.',
+          details: 'Proposed increase from 60 to 120 intake.'
+        },
+        {
+          id: 'AUD-015-02',
+          timestamp: '2026-09-18 16:30:00',
+          actor: 'Regional Committee',
+          role: 'Committee Decision',
+          action: 'APPLICATION_REJECTED',
+          summary: 'Application rejected under Chapter II Clause 2.14.',
+          details: 'Mandatory criterion: Average student enrollment in the course over past 2 years was 42%, falling below statutory 60% requirement.'
+        }
+      ]
+    }
+  ],
+
+  // System-wide alerts & tasks queue
+  alerts: [
+    {
+      id: 'ALT-101',
+      appId: 'APP-2026-081',
+      appRef: 'AICTE/WR/2026/1-42981042',
+      institution: 'Shreya Institute of Technology, Pune',
+      title: 'Deficiency Notice Response Due in 7 Days',
+      severity: 'critical',
+      category: 'deficiency',
+      message: 'State Government NOC and Joint Bank FDR (INR 15L shortfall) must be rectified before 04-Nov-2026.',
+      dueDate: '2026-11-04',
+      assignedRole: 'institution',
+      assignedPerson: 'Dr. Suresh Patil',
+      status: 'unread',
+      createdAt: '2026-10-20 14:15:00',
+      actionableLink: { view: 'blockers', appId: 'APP-2026-081' }
+    },
+    {
+      id: 'ALT-102',
+      appId: 'APP-2026-118',
+      appRef: 'AICTE/SC/2026/1-77189021',
+      institution: 'Vignana Jyothi Institute, Hyderabad',
+      title: 'Fire Safety Certificate Has Expired',
+      severity: 'critical',
+      category: 'expiry',
+      message: 'TS Fire NOC expired on 30-Sep-2026. Expert Visit Committee schedule is blocked until renewal is uploaded.',
+      dueDate: '2026-10-31',
+      assignedRole: 'institution',
+      assignedPerson: 'Dr. Ramesh Chandra',
+      status: 'unread',
+      createdAt: '2026-10-05 16:02:00',
+      actionableLink: { view: 'compliance', appId: 'APP-2026-118' }
+    },
+    {
+      id: 'ALT-103',
+      appId: 'APP-2026-118',
+      appRef: 'AICTE/SC/2026/1-77189021',
+      institution: 'Vignana Jyothi Institute, Hyderabad',
+      title: 'Scrutiny Stage Ageing SLA Exceeded (28 Days vs 10d SLA)',
+      severity: 'high',
+      category: 'escalation',
+      message: 'Scrutiny evaluation has exceeded the normative 10-day processing window by 18 days.',
+      dueDate: '2026-10-08',
+      assignedRole: 'reviewer',
+      assignedPerson: 'Dr. S. K. Reddy',
+      status: 'unread',
+      createdAt: '2026-10-15 09:00:00',
+      actionableLink: { view: 'applications', appId: 'APP-2026-118' }
+    },
+    {
+      id: 'ALT-104',
+      appId: 'APP-2026-081',
+      appRef: 'AICTE/WR/2026/1-42981042',
+      institution: 'Shreya Institute of Technology, Pune',
+      title: 'Resubmitted Faculty List Awaiting Reviewer Scrutiny',
+      severity: 'medium',
+      category: 'task',
+      message: 'Institution uploaded revised 8-faculty roster. Pending scrutiny officer verification.',
+      dueDate: '2026-10-30',
+      assignedRole: 'reviewer',
+      assignedPerson: 'Prof. Rajiv Sharma',
+      status: 'acknowledged',
+      createdAt: '2026-10-22 10:25:00',
+      actionableLink: { view: 'compliance', appId: 'APP-2026-081' }
+    },
+    {
+      id: 'ALT-105',
+      appId: 'APP-2026-194',
+      appRef: 'AICTE/SW/2026/1-98014522',
+      institution: 'National Institute of Engineering Extension',
+      title: 'New PG Application Pending Scrutiny Officer Allocation',
+      severity: 'low',
+      category: 'workflow',
+      message: 'Application submitted on 26-Oct. Awaiting scrutiny committee evaluator assignment.',
+      dueDate: '2026-10-29',
+      assignedRole: 'admin',
+      assignedPerson: 'Dr. Meenakshi Sundaram',
+      status: 'unread',
+      createdAt: '2026-10-26 10:00:00',
+      actionableLink: { view: 'applications', appId: 'APP-2026-194' }
+    }
+  ]
+};

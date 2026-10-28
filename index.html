@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AICTE Approval Intelligence</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-backdrop">
+    <div class="login-glow g1"></div>
+    <div class="login-glow g2"></div>
+  </div>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="login-emblem">
+        <i class="fa-solid fa-landmark"></i>
+      </div>
+      <div>
+        <h1 class="login-title">AICTE Approval Intelligence</h1>
+        <p class="login-subtitle">Integrated Workflow · Compliance · Dependency Management</p>
+        <p class="login-ps">Problem Statement SIH26262 · Prototype — Synthetic Records Only</p>
+      </div>
+    </div>
+    <div class="login-divider"></div>
+    <p class="login-prompt">Select your role to continue</p>
+    <div class="role-list">
+      <button class="role-row" onclick="APP.login('institution')">
+        <div class="role-row-icon" style="background:#1e40af22;color:#1e40af">
+          <i class="fa-solid fa-building-columns"></i>
+        </div>
+        <div class="role-row-body">
+          <span class="role-row-title">Institution Coordinator</span>
+          <span class="role-row-desc">Submit applications · upload evidence · track progress · respond to deficiencies</span>
+        </div>
+        <i class="fa-solid fa-chevron-right role-row-caret"></i>
+      </button>
+      <button class="role-row" onclick="APP.login('reviewer')">
+        <div class="role-row-icon" style="background:#14532d22;color:#14532d">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div class="role-row-body">
+          <span class="role-row-title">Scrutiny Officer / Reviewer</span>
+          <span class="role-row-desc">Review applications · verify evidence · raise deficiencies · recommend decisions</span>
+        </div>
+        <i class="fa-solid fa-chevron-right role-row-caret"></i>
+      </button>
+      <button class="role-row" onclick="APP.login('admin')">
+        <div class="role-row-icon" style="background:#78350f22;color:#78350f">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="role-row-body">
+          <span class="role-row-title">Administrator</span>
+          <span class="role-row-desc">Monitor all applications · stage ageing · analytics · escalations · audit</span>
+        </div>
+        <i class="fa-solid fa-chevron-right role-row-caret"></i>
+      </button>
+    </div>
+    <p class="login-disclaimer">
+      <i class="fa-solid fa-circle-info"></i>
+      This prototype uses synthetic records and is not connected to AICTE systems. Information displayed does not represent any real institution or decision.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APPLICATION SHELL
+═══════════════════════════════════════════ -->
+<div id="mainApp" class="screen">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sb-top">
+      <div class="sb-brand">
+        <div class="sb-brand-icon"><i class="fa-solid fa-landmark"></i></div>
+        <span class="sb-brand-text">AICTE·AI</span>
+      </div>
+      <button class="sb-collapse-btn" id="sbCollapseBtn" onclick="APP.toggleSidebar()" title="Collapse sidebar">
+        <i class="fa-solid fa-sidebar-flip"></i>
+      </button>
+    </div>
+
+    <div class="sb-user-block" id="sbUserBlock">
+      <div class="sb-avatar" id="sbAvatar">A</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name" id="sbUserName">Administrator</div>
+        <div class="sb-user-role" id="sbUserRole">Admin · All Regions</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav" id="sbNav"><!-- injected --></nav>
+
+    <div class="sb-bottom">
+      <button class="sb-logout" onclick="APP.logout()">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <div class="app-panel" id="appPanel">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-menu-btn" onclick="APP.toggleSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <nav class="breadcrumb" id="breadcrumb">
+          <span>Dashboard</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" id="globalSearchWrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search applications…" id="globalSearch" oninput="APP.globalSearch(this.value)"/>
+          <div class="global-search-results" id="globalSearchResults"></div>
+        </div>
+        <button class="btn btn-secondary btn-xs" onclick="APP.resetDemoData()" title="Reset all data to clean initial demo state" style="display:flex;align-items:center;gap:4px;">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Reset Demo</span>
+        </button>
+        <button class="topbar-icon-btn" onclick="APP.toggleNotifications()" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="topbar-badge" id="notifBadge">5</span>
+        </button>
+        <div class="topbar-user-chip" id="topbarUserChip">
+          <div class="topbar-chip-avatar" id="topbarAvatar">A</div>
+          <span id="topbarUserLabel">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- NOTIFICATION DRAWER -->
+    <div class="notif-drawer" id="notifDrawer">
+      <div class="notif-drawer-header">
+        <span class="notif-drawer-title">Notifications</span>
+        <button onclick="APP.markAllRead()" class="link-btn">Mark all read</button>
+        <button onclick="APP.toggleNotifications()" class="notif-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="notif-drawer-body" id="notifDrawerBody"><!-- injected --></div>
+    </div>
+
+    <!-- PAGE CONTENT AREA -->
+    <main class="page-area" id="pageArea">
+      <!-- injected by router -->
+    </main>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     GLOBAL OVERLAY / MODAL SYSTEM
+═══════════════════════════════════════════ -->
+<div class="overlay-backdrop" id="overlayBackdrop" onclick="APP.closeOverlay()"></div>
+
+<div class="modal-panel" id="modalPanel">
+  <div class="modal-panel-header" id="modalPanelHeader">
+    <h2 class="modal-panel-title" id="modalPanelTitle">Detail</h2>
+    <div class="modal-panel-actions" id="modalPanelActions"></div>
+    <button class="modal-close-btn" onclick="APP.closeOverlay()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <div class="modal-panel-body" id="modalPanelBody"><!-- injected --></div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-dialog" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="confirm-content">
+      <div class="confirm-title" id="confirmTitle">Confirm Action</div>
+      <div class="confirm-desc" id="confirmDesc"></div>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="APP.cancelConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn" onclick="APP.doConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST AREA -->
+<div class="toast-area" id="toastArea"></div>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════ -->
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script src="store.js"></script>
+<script src="utils.js"></script>
+<script src="components.js"></script>
+<script src="views/dashboard.js"></script>
+<script src="views/applications.js"></script>
+<script src="views/compliance.js"></script>
+<script src="views/blockers.js"></script>
+<script src="views/alerts.js"></script>
+<script src="views/audit.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
